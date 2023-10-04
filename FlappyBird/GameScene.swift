@@ -361,7 +361,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             item.position = CGPoint(x: self.frame.size.width + itemTexture.size().width / 2, y: 0)
             item.zPosition = -50 // 雲より手前、地面より奥
             
-            // 下側の壁の中央位置にランダム値を足して、下側の壁の表示位置を決定する
             let random_y = CGFloat.random(in: -random_y_range...random_y_range)
             let under_item_y = under_item_center_y + random_y
             
@@ -369,20 +368,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let upper = SKSpriteNode(texture: itemTexture)
             upper.position = CGPoint(x: 30, y: under_item_y + itemTexture.size().height + slit_length)
             
+            // 物理体を設定
+            upper.physicsBody = SKPhysicsBody(circleOfRadius: upper.size.height / 2)
+            upper.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: upper.size.width, height: upper.size.height))
+            upper.physicsBody?.categoryBitMask = self.itemCategory
+            upper.physicsBody?.isDynamic = false
             // アイテムをまとめるノードに追加
             item.addChild(upper)
             
-            // アイテムカウント用の透明な壁を作成
-            let itemScoreNode = SKNode()
-            itemScoreNode.position = CGPoint(x: 30, y: under_item_y + itemTexture.size().height + slit_length)
-            
-            // 透明な壁に物理体を設定する
-            itemScoreNode.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: upper.size.width, height: upper.size.height))
-            itemScoreNode.physicsBody?.categoryBitMask = self.itemCategory
-            itemScoreNode.physicsBody?.isDynamic = false
-            
-            // アイテムをまとめるノードに追加
-            item.addChild(itemScoreNode)
+            //            // アイテムカウント用の透明な壁を作成
+            //            let itemScoreNode = SKNode()
+            //            itemScoreNode.position = CGPoint(x: 30, y: under_item_y + itemTexture.size().height + slit_length)
+            //
+            //
+            //
+            //            // アイテムをまとめるノードに追加
+            //            item.addChild(itemScoreNode)
             
             // アイテムをまとめるノードにアニメーションを設定
             item.run(itemAnimation)
