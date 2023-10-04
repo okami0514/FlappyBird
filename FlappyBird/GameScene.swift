@@ -12,15 +12,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var scrollNode:SKNode!
     var wallNode:SKNode!
     var bird:SKSpriteNode!
+    var itemNode:SKNode!
     
     // 衝突判定カテゴリー
     let birdCategory: UInt32 = 1 << 0       // 0...00001
     let groundCategory: UInt32 = 1 << 1     // 0...00010
     let wallCategory: UInt32 = 1 << 2       // 0...00100
     let scoreCategory: UInt32 = 1 << 3      // 0...01000
+    let itemCategory: UInt32 = 1 << 4       // 0...10000
     
     // スコア用
     var score = 0
+    var itemScore = 0
     var scoreLabelNode:SKLabelNode!
     var bestScoreLabelNode:SKLabelNode!
     let userDefaults:UserDefaults = UserDefaults.standard
@@ -46,6 +49,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 bestScoreLabelNode.text = "Best Score:\(bestScore)"
                 userDefaults.set(bestScore, forKey: "BEST")
             }
+        } else if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory || (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
+            print("ItemScoreUp")
+            itemScore += 1
+            itemScoreLabelNode.text = "ItemScore:\(itemScore)"
         } else {
             // 壁か地面と衝突した
             print("GameOver")
@@ -72,6 +79,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         score = 0
         scoreLabelNode.text = "Score:\(score)"
         
+        itemScore  = 0
+        itemScoreLabelNode.text = "ItemScore:\(itemScore)"
+        
         // 鳥を初期位置に戻し、壁と地面の両方に反発するように戻す
         bird.position = CGPoint(x: self.frame.size.width * 0.2, y:self.frame.size.height * 0.7)
         bird.physicsBody?.velocity = CGVector.zero
@@ -80,6 +90,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // 全ての壁を取り除く
         wallNode.removeAllChildren()
+        
+        itemNode.removeAllChildren()
         
         // 鳥の羽ばたきを戻す
         bird.speed = 1
@@ -118,11 +130,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         wallNode = SKNode()
         scrollNode.addChild(wallNode)
         
+        itemNode = SKNode()
+        scrollNode.addChild(itemNode)
+        
         // 各種スプライトを生成する処理をメソッドに分割
         setupGround()
         setupCloud()
         setupWall()
         setupBird()
+        setupItem()
         
         // スコア表示ラベルの設定
         setupScoreLabel()
@@ -306,6 +322,84 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         wallNode.run(repeatForeverAnimation)
     }
     
+    func setupItem() {
+        let itemTexture = SKTexture(imageNamed: "item")
+        itemTexture.filteringMode = .linear
+        
+        // 移動する距離を計算
+        let movingDistance = self.frame.size.width + itemTexture.size().width
+        
+        // 画面外まで移動するアクションを作成
+        let moveItem = SKAction.moveBy(x: -movingDistance, y: 0, duration:4)
+        
+        // 自身を取り除くアクションを作成
+        let removeItem = SKAction.removeFromParent()
+        
+        // 2つのアニメーションを順に実行するアクションを作成
+        let itemAnimation = SKAction.sequence([moveItem, removeItem])
+        
+        // 鳥の画像サイズを取得
+        let birdSize = SKTexture(imageNamed: "bird_a").size()
+        
+        // 鳥が通り抜ける隙間の大きさを鳥のサイズの4倍とする
+        let slit_length = birdSize.height * 4
+        
+        // 隙間位置の上下の振れ幅を60ptとする
+        let random_y_range: CGFloat = 60
+        
+        // アイテムの中央位置(y座標)を取得
+        let groundSize = SKTexture(imageNamed: "ground").size()
+        let sky_center_y = groundSize.height + (self.frame.size.height - groundSize.height) / 3
+        
+        // 空の中央位置を基準にして下側の壁の中央位置を取得
+        let under_item_center_y = sky_center_y - slit_length / 2 - itemTexture.size().height / 2
+        
+        // アイテムを生成するアクションを作成
+        let createItemAnimation = SKAction.run({
+            // アイテムをまとめるノードを作成
+            let item = SKNode()
+            item.position = CGPoint(x: self.frame.size.width + itemTexture.size().width / 2, y: 0)
+            item.zPosition = -50 // 雲より手前、地面より奥
+            
+            // 下側の壁の中央位置にランダム値を足して、下側の壁の表示位置を決定する
+            let random_y = CGFloat.random(in: -random_y_range...random_y_range)
+            let under_item_y = under_item_center_y + random_y
+            
+            // アイテムを作成
+            let upper = SKSpriteNode(texture: itemTexture)
+            upper.position = CGPoint(x: 30, y: under_item_y + itemTexture.size().height + slit_length)
+            
+            // アイテムをまとめるノードに追加
+            item.addChild(upper)
+            
+            // アイテムカウント用の透明な壁を作成
+            let itemScoreNode = SKNode()
+            itemScoreNode.position = CGPoint(x: 30, y: under_item_y + itemTexture.size().height + slit_length)
+            
+            // 透明な壁に物理体を設定する
+            itemScoreNode.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: upper.size.width, height: upper.size.height))
+            itemScoreNode.physicsBody?.categoryBitMask = self.itemCategory
+            itemScoreNode.physicsBody?.isDynamic = false
+            
+            // アイテムをまとめるノードに追加
+            item.addChild(itemScoreNode)
+            
+            // アイテムをまとめるノードにアニメーションを設定
+            item.run(itemAnimation)
+            
+            // アイテムを表示するノードに今回作成したアイテムを追加
+            self.itemNode.addChild(item)
+        })
+        // 次の壁作成までの時間待ちのアクションを作成
+        let waitAnimation = SKAction.wait(forDuration: 2)
+        
+        // 壁を作成->時間待ち->壁を作成を無限に繰り返すアクションを作成
+        let repeatForeverAnimation = SKAction.repeatForever(SKAction.sequence([createItemAnimation, waitAnimation]))
+        
+        // 壁を表示するノードに壁の作成を無限に繰り返すアクションを設定
+        itemNode.run(repeatForeverAnimation)
+    }
+    
     func setupBird() {
         // 鳥の画像を2種類読み込む
         let birdTextureA = SKTexture(imageNamed: "bird_a")
@@ -327,7 +421,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // カテゴリー設定
         bird.physicsBody?.categoryBitMask = birdCategory
         bird.physicsBody?.collisionBitMask = groundCategory | wallCategory
-        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | scoreCategory
+        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | scoreCategory | itemCategory
         
         // 衝突した時に回転させない
         bird.physicsBody?.allowsRotation = false
