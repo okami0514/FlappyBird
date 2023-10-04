@@ -66,14 +66,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             print("ItemScoreUp")
             itemScore += 1
             itemScoreLabelNode.text = "ItemScore:\(itemScore)"
-            loadAudio()
             audioPlayer?.play()
             
             // contact.bodyA,contact.bodyBのどちらがアイテムか判定
             if (contact.bodyA.categoryBitMask & itemCategory) > 0 {
-                self.removeChildren(in: [contact.bodyA.node!])
+                self.itemNode.removeChildren(in: [contact.bodyA.node!])
             }else if(contact.bodyB.categoryBitMask & itemCategory > 0){
-                self.removeChildren(in: [contact.bodyB.node!])
+                self.itemNode.removeChildren(in: [contact.bodyB.node!])
             }
             
         } else {
@@ -138,6 +137,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // SKView上にシーンが表示されたときに呼ばれるメソッド
     override func didMove(to view: SKView) {
+        loadAudio()
         // 重力を設定
         physicsWorld.gravity = CGVector(dx: 0, dy: -4)
         physicsWorld.contactDelegate = self
@@ -380,7 +380,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // アイテムを生成するアクションを作成
         let createItemAnimation = SKAction.run({
             // アイテムをまとめるノードを作成
-            let item = SKSpriteNode()
+            let item = SKNode()
             item.position = CGPoint(x: self.frame.size.width + itemTexture.size().width / 2, y: 0)
             item.zPosition = -50 // 雲より手前、地面より奥
             
@@ -403,11 +403,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             item.run(itemAnimation)
             
             // アイテムを表示するノードに今回作成したアイテムを追加
+            
             self.itemNode.addChild(item)
             
             
         })
-
+        
         // 次のアイテム作成までの時間待ちのアクションを作成
         let waitAnimation = SKAction.wait(forDuration: 2)
         
@@ -416,6 +417,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // アイテムを表示するノードに壁の作成を無限に繰り返すアクションを設定
         itemNode.run(repeatForeverAnimation)
+        
     }
     
     func setupBird() {
