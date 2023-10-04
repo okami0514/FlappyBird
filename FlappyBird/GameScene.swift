@@ -70,9 +70,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             // contact.bodyA,contact.bodyBのどちらがアイテムか判定
             if (contact.bodyA.categoryBitMask & itemCategory) > 0 {
-                self.itemNode.removeChildren(in: [contact.bodyA.node!])
+                contact.bodyA.node!.removeFromParent();
             }else if(contact.bodyB.categoryBitMask & itemCategory > 0){
-                self.itemNode.removeChildren(in: [contact.bodyB.node!])
+                contact.bodyB.node!.removeFromParent();
             }
             
         } else {
