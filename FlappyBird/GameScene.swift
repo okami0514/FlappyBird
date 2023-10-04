@@ -6,13 +6,14 @@
 //
 
 import SpriteKit
+import AVFoundation
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var scrollNode:SKNode!
     var wallNode:SKNode!
     var bird:SKSpriteNode!
-    var itemNode:SKNode!
+    var itemNode:SKSpriteNode!
     
     // 衝突判定カテゴリー
     let birdCategory: UInt32 = 1 << 0       // 0...00001
@@ -28,6 +29,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var bestScoreLabelNode:SKLabelNode!
     let userDefaults:UserDefaults = UserDefaults.standard
     var itemScoreLabelNode:SKLabelNode!
+    
+    var audioPlayer: AVAudioPlayer?
+    
+    func loadAudio() {
+        if let path = Bundle.main.path(forResource: "soundFileName", ofType: "mp3") {
+            do {
+                audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
+            } catch {
+                print("音声ファイルの読み込みエラー: \(error.localizedDescription)")
+            }
+        }
+    }
     
     // SKPhysicsContactDelegateのメソッド。衝突したときに呼ばれる
     func didBegin(_ contact: SKPhysicsContact) {
@@ -53,6 +66,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             print("ItemScoreUp")
             itemScore += 1
             itemScoreLabelNode.text = "ItemScore:\(itemScore)"
+            loadAudio()
+            audioPlayer?.play()
+            
+            // contact.bodyA,contact.bodyBのどちらがアイテムか判定
+            if (contact.bodyA.categoryBitMask & itemCategory) > 0 {
+                self.removeChildren(in: [contact.bodyA.node!])
+            }else if(contact.bodyB.categoryBitMask & itemCategory > 0){
+                self.removeChildren(in: [contact.bodyB.node!])
+            }
+            
         } else {
             // 壁か地面と衝突した
             print("GameOver")
@@ -130,7 +153,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         wallNode = SKNode()
         scrollNode.addChild(wallNode)
         
-        itemNode = SKNode()
+        itemNode = SKSpriteNode()
         scrollNode.addChild(itemNode)
         
         // 各種スプライトを生成する処理をメソッドに分割
@@ -357,7 +380,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // アイテムを生成するアクションを作成
         let createItemAnimation = SKAction.run({
             // アイテムをまとめるノードを作成
-            let item = SKNode()
+            let item = SKSpriteNode()
             item.position = CGPoint(x: self.frame.size.width + itemTexture.size().width / 2, y: 0)
             item.zPosition = -50 // 雲より手前、地面より奥
             
@@ -376,28 +399,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // アイテムをまとめるノードに追加
             item.addChild(upper)
             
-            //            // アイテムカウント用の透明な壁を作成
-            //            let itemScoreNode = SKNode()
-            //            itemScoreNode.position = CGPoint(x: 30, y: under_item_y + itemTexture.size().height + slit_length)
-            //
-            //
-            //
-            //            // アイテムをまとめるノードに追加
-            //            item.addChild(itemScoreNode)
-            
             // アイテムをまとめるノードにアニメーションを設定
             item.run(itemAnimation)
             
             // アイテムを表示するノードに今回作成したアイテムを追加
             self.itemNode.addChild(item)
+            
+            
         })
-        // 次の壁作成までの時間待ちのアクションを作成
+
+        // 次のアイテム作成までの時間待ちのアクションを作成
         let waitAnimation = SKAction.wait(forDuration: 2)
         
-        // 壁を作成->時間待ち->壁を作成を無限に繰り返すアクションを作成
+        // アイテムを作成->時間待ち->アイテムを作成を無限に繰り返すアクションを作成
         let repeatForeverAnimation = SKAction.repeatForever(SKAction.sequence([createItemAnimation, waitAnimation]))
         
-        // 壁を表示するノードに壁の作成を無限に繰り返すアクションを設定
+        // アイテムを表示するノードに壁の作成を無限に繰り返すアクションを設定
         itemNode.run(repeatForeverAnimation)
     }
     

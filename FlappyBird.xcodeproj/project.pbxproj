@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9A1E08892ACD055A004409C9 /* soundFileName.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9A1E08882ACD055A004409C9 /* soundFileName.mp3 */; };
 		9A3251A62AC8FD2900B72468 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3251A52AC8FD2900B72468 /* AppDelegate.swift */; };
 		9A3251A82AC8FD2900B72468 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3251A72AC8FD2900B72468 /* SceneDelegate.swift */; };
 		9A3251AA2AC8FD2900B72468 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3251A92AC8FD2900B72468 /* ViewController.swift */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9A1E08882ACD055A004409C9 /* soundFileName.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = soundFileName.mp3; sourceTree = "<group>"; };
 		9A3251A22AC8FD2900B72468 /* FlappyBird.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlappyBird.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A3251A52AC8FD2900B72468 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9A3251A72AC8FD2900B72468 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -66,6 +68,7 @@
 				9A3251B02AC8FD2B00B72468 /* LaunchScreen.storyboard */,
 				9A3251B32AC8FD2B00B72468 /* Info.plist */,
 				9A3251B92AC8FE5800B72468 /* GameScene.swift */,
+				9A1E08882ACD055A004409C9 /* soundFileName.mp3 */,
 			);
 			path = FlappyBird;
 			sourceTree = "<group>";
@@ -129,6 +132,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9A3251B22AC8FD2B00B72468 /* LaunchScreen.storyboard in Resources */,
+				9A1E08892ACD055A004409C9 /* soundFileName.mp3 in Resources */,
 				9A3251AF2AC8FD2B00B72468 /* Assets.xcassets in Resources */,
 				9A3251AD2AC8FD2900B72468 /* Main.storyboard in Resources */,
 			);
