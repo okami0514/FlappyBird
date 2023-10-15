@@ -36,6 +36,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if let path = Bundle.main.path(forResource: "soundFileName", ofType: "mp3") {
             do {
                 audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
+                audioPlayer?.prepareToPlay()
             } catch {
                 print("音声ファイルの読み込みエラー: \(error.localizedDescription)")
             }
